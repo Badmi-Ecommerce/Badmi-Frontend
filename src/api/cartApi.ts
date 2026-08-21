@@ -1,26 +1,31 @@
 import axiosClient from './axiosClient';
+import { unwrap } from './unwrap';
 import { API_ENDPOINTS } from '../constants';
 import type { CartItem } from '../types';
 
 const cartApi = {
-  getCart() {
-    return axiosClient.get<CartItem[]>(API_ENDPOINTS.CART);
+  async getCart() {
+    return unwrap(await axiosClient.get(API_ENDPOINTS.CART)) as CartItem[];
   },
 
-  addItem(productId: number, quantity: number) {
-    return axiosClient.post(API_ENDPOINTS.CART_ADD, { product_id: productId, quantity });
+  async addItem(variantId: number, quantity: number) {
+    return unwrap(
+      await axiosClient.post(API_ENDPOINTS.CART_ADD, { variantId, quantity })
+    ) as CartItem;
   },
 
-  updateItem(cartItemId: number, quantity: number) {
-    return axiosClient.put(API_ENDPOINTS.CART_UPDATE(cartItemId), { quantity });
+  async updateItem(cartItemId: number, quantity: number) {
+    return unwrap(
+      await axiosClient.put(API_ENDPOINTS.CART_UPDATE(cartItemId), { quantity })
+    ) as CartItem;
   },
 
-  removeItem(cartItemId: number) {
-    return axiosClient.delete(API_ENDPOINTS.CART_REMOVE(cartItemId));
+  async removeItem(cartItemId: number) {
+    return unwrap(await axiosClient.delete(API_ENDPOINTS.CART_REMOVE(cartItemId)));
   },
 
-  clearCart() {
-    return axiosClient.delete(API_ENDPOINTS.CART_CLEAR);
+  async clearCart() {
+    return unwrap(await axiosClient.delete(API_ENDPOINTS.CART_CLEAR));
   },
 };
 

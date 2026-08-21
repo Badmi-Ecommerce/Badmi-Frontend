@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, ArrowRight, Play, ChevronRight } from 'lucide-react';
 import ProductCard from '../../components/shared/ProductCard/ProductCard';
-import { mockCategories, mockProducts } from '../../mocks/data';
+import { useProducts } from '../../hooks/useProducts';
+import { useCategories } from '../../hooks/useCategories';
 import { useAddToCart } from '../../hooks/useCart';
 import { useAuth } from '../../store/AuthContext';
 import { ROUTES } from '../../constants/routes';
@@ -22,9 +23,6 @@ const STORES = [
 const CATEGORY_PASTEL = ['#FFE8E8', '#E8F0FF', '#E8FFF3', '#FFFBE8', '#F3E8FF', '#FFF3E8', '#FFE8F5', '#E8FFFA'];
 
 // ─── Sub-sections ───────────────────────────────────────
-const rackets = mockProducts.filter(p => p.category_id === 1);
-const bags    = mockProducts.filter(p => p.category_id === 3);
-
 interface ProductSectionProps {
   title: string;
   products: Product[];
@@ -90,13 +88,24 @@ const HomePage = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [activeDot, setActiveDot] = useState(0);
 
+  const { data: categories = [] } = useCategories();
+  const { data: productsPage } = useProducts({ page: 0, limit: 24 });
+  const products = productsPage?.content ?? [];
+  const rackets = products.filter((p) => p.categoryId === (categories[0]?.id ?? 1));
+  const bags = products.filter((p) => p.categoryId === (categories[2]?.id ?? categories[1]?.id ?? 3));
+
   const handleAddToCart = (product: Product) => {
     if (!isAuthenticated) {
       toast.error('Vui lòng đăng nhập để thêm vào giỏ hàng.');
       navigate(ROUTES.LOGIN);
       return;
     }
-    addToCart.mutate({ productId: product.id, quantity: 1 });
+    const variantId = product.variants?.[0]?.id;
+    if (!variantId) {
+      toast.error('Sản phẩm chưa có biến thể để mua.');
+      return;
+    }
+    addToCart.mutate({ variantId, quantity: 1 });
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -144,7 +153,7 @@ const HomePage = () => {
                 onChange={e => setSelectedCategory(e.target.value)}
               >
                 <option value="">Tất cả danh mục</option>
-                {mockCategories.map(c => (
+                {categories.map(c => (
                   <option key={c.id} value={String(c.id)}>{c.name}</option>
                 ))}
               </select>
@@ -169,7 +178,7 @@ const HomePage = () => {
             <h2>Danh mục sản phẩm</h2>
           </div>
           <div className="categories-grid">
-            {mockCategories.map((cat, idx) => (
+            {categories.map((cat, idx) => (
               <Link key={cat.id} to={`${ROUTES.PRODUCTS}?category=${cat.id}`} className="category-card">
                 <div className="category-card-img" style={{ background: CATEGORY_PASTEL[idx % CATEGORY_PASTEL.length] }}>
                   <img

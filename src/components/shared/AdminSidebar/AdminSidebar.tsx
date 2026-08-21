@@ -9,6 +9,7 @@ const AdminSidebar = () => {
     { name: 'Products', path: ROUTES.ADMIN_PRODUCTS, icon: '🏸' },
     { name: 'Categories', path: ROUTES.ADMIN_CATEGORIES, icon: '🏷️' },
     { name: 'Brands', path: ROUTES.ADMIN_BRANDS, icon: '🏢' },
+    { name: 'Orders', path: '/admin/orders', icon: '📦' },
   ];
 
   return (

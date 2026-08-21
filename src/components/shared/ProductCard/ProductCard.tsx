@@ -16,8 +16,8 @@ const BRAND_NAMES: Record<number, string> = {
 
 const ProductCard = ({ product, onAddToCart, onWishlist }: Props) => {
   const navigate = useNavigate();
-  const discount = calcDiscount(product.price, product.original_price ?? 0);
-  const brandName = product.brand?.name ?? BRAND_NAMES[product.brand_id ?? 0] ?? '';
+  const discount = calcDiscount(product.price, product.originalPrice ?? 0);
+  const brandName = product.brand?.name ?? BRAND_NAMES[product.brandId ?? 0] ?? '';
 
   const handleNavigate = () => {
     navigate(ROUTES.PRODUCT_DETAIL.replace(':slug', product.slug));
@@ -67,8 +67,8 @@ const ProductCard = ({ product, onAddToCart, onWishlist }: Props) => {
           {product.price > 0 ? (
             <>
               <span className="product-price">{formatCurrency(product.price)}</span>
-              {product.original_price && product.original_price > product.price && (
-                <span className="product-original-price">{formatCurrency(product.original_price)}</span>
+              {product.originalPrice && product.originalPrice > product.price && (
+                <span className="product-original-price">{formatCurrency(product.originalPrice)}</span>
               )}
             </>
           ) : (

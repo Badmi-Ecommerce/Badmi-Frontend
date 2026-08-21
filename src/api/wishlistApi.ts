@@ -1,18 +1,21 @@
 import axiosClient from './axiosClient';
+import { unwrap } from './unwrap';
 import { API_ENDPOINTS } from '../constants';
 import type { WishlistItem } from '../types';
 
 const wishlistApi = {
-  getWishlist() {
-    return axiosClient.get<WishlistItem[]>(API_ENDPOINTS.WISHLIST);
+  async getAll() {
+    return unwrap(await axiosClient.get(API_ENDPOINTS.WISHLIST)) as WishlistItem[];
   },
 
-  addItem(productId: number) {
-    return axiosClient.post(API_ENDPOINTS.WISHLIST_ADD, { product_id: productId });
+  async add(productId: number) {
+    return unwrap(
+      await axiosClient.post(API_ENDPOINTS.WISHLIST_ADD, { productId })
+    ) as WishlistItem;
   },
 
-  removeItem(wishlistItemId: number) {
-    return axiosClient.delete(API_ENDPOINTS.WISHLIST_REMOVE(wishlistItemId));
+  async remove(wishlistItemId: number) {
+    return unwrap(await axiosClient.delete(API_ENDPOINTS.WISHLIST_REMOVE(wishlistItemId)));
   },
 };
 

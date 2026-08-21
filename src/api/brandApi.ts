@@ -1,14 +1,14 @@
 import axiosClient from './axiosClient';
+import { unwrap } from './unwrap';
 import { API_ENDPOINTS } from '../constants';
 import type { Brand } from '../types';
 
 const brandApi = {
-  getAll() {
-    return axiosClient.get<Brand[]>(API_ENDPOINTS.BRANDS);
+  async getAll() {
+    return unwrap(await axiosClient.get(API_ENDPOINTS.BRANDS)) as Brand[];
   },
-
-  getById(id: number) {
-    return axiosClient.get<Brand>(API_ENDPOINTS.BRAND_DETAIL(id));
+  async getById(id: number | string) {
+    return unwrap(await axiosClient.get(API_ENDPOINTS.BRAND_DETAIL(id))) as Brand;
   },
 };
 

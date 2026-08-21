@@ -1,35 +1,44 @@
-// =============================================
-// TypeScript interfaces matching DB schema
-// =============================================
-
 export interface Category {
   id: number;
   name: string;
   slug: string;
   description?: string;
   image?: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Subcategory {
   id: number;
   name: string;
-  category_id: number;
+  categoryId: number;
   slug: string;
   description?: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Brand {
   id: number;
   name: string;
+  slug?: string;
   logo?: string;
   description?: string;
   website?: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductVariant {
+  id: number;
+  sku: string;
+  variantName: string;
+  attributes?: string;
+  price: number;
+  originalPrice?: number;
+  stockQuantity: number;
+  reservedQuantity: number;
+  isActive: boolean;
 }
 
 export interface Product {
@@ -38,18 +47,19 @@ export interface Product {
   slug: string;
   description?: string;
   price: number;
-  original_price?: number;
+  originalPrice?: number;
   stock: number;
   sku: string;
   image?: string;
   images?: string[];
-  category_id: number;
-  subcategory_id?: number;
-  brand_id?: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  // Joined relations (optional, from API response)
+  categoryId: number;
+  subcategoryId?: number;
+  brandId?: number;
+  isActive: boolean;
+  status?: string;
+  createdAt: string;
+  updatedAt: string;
+  variants?: ProductVariant[];
   category?: Category;
   subcategory?: Subcategory;
   brand?: Brand;
@@ -62,51 +72,67 @@ export interface User {
   phone?: string;
   address?: string;
   role: 'customer' | 'admin';
-  created_at: string;
-  updated_at: string;
+  emailVerified?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface OrderItem {
   id: number;
-  order_id: number;
-  product_id: number;
+  productName: string;
+  variantName: string;
+  sku: string;
+  imageUrl?: string;
+  unitPrice: number;
   quantity: number;
-  price: number;
-  product?: Product;
+  lineTotal: number;
 }
 
 export interface Order {
   id: number;
-  user_id: number;
-  total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  shipping_address: string;
-  payment_method: string;
-  created_at: string;
-  updated_at: string;
-  items?: OrderItem[];
+  orderCode: string;
+  status: string;
+  paymentStatus: string;
+  recipientName: string;
+  recipientPhone: string;
+  shippingAddress: string;
+  shippingWard?: string;
+  shippingDistrict?: string;
+  shippingProvince: string;
+  subtotal: number;
+  shippingFee: number;
+  grandTotal: number;
+  customerNote?: string;
+  items: OrderItem[];
+  createdAt: string;
 }
 
 export interface CartItem {
   id: number;
-  user_id: number;
-  product_id: number;
+  variantId: number;
+  productId: number;
+  productName: string;
+  productSlug: string;
+  variantName: string;
+  sku: string;
+  imageUrl?: string;
+  unitPrice: number;
   quantity: number;
-  added_at: string;
-  product?: Product;
+  lineTotal: number;
+  createdAt: string;
 }
 
 export interface WishlistItem {
   id: number;
-  user_id: number;
-  product_id: number;
-  added_at: string;
-  product?: Product;
+  productId: number;
+  productName: string;
+  productSlug: string;
+  price: number;
+  imageUrl?: string;
+  addedAt: string;
 }
-
-// =============================================
-// API Request / Response types
-// =============================================
 
 export interface ApiResponse<T> {
   data: T;
@@ -114,11 +140,11 @@ export interface ApiResponse<T> {
   success: boolean;
 }
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
+export interface PagedResponse<T> {
+  content: T[];
   page: number;
-  limit: number;
+  size: number;
+  totalElements: number;
   totalPages: number;
 }
 
@@ -131,6 +157,7 @@ export interface RegisterRequest {
   name: string;
   email: string;
   password: string;
+  confirmPassword?: string;
   phone?: string;
 }
 
@@ -140,13 +167,21 @@ export interface AuthResponse {
 }
 
 export interface ProductFilters {
-  category_id?: number;
-  subcategory_id?: number;
-  brand_id?: number;
-  min_price?: number;
-  max_price?: number;
+  categoryId?: number;
+  subcategoryId?: number;
+  brandId?: number;
+  minPrice?: number;
+  maxPrice?: number;
   search?: string;
   page?: number;
   limit?: number;
   sort?: 'price_asc' | 'price_desc' | 'newest' | 'popular';
+}
+
+/** Normalize product for UI (primary image). */
+export function withProductImage(product: Product): Product {
+  return {
+    ...product,
+    image: product.image ?? product.images?.[0],
+  };
 }

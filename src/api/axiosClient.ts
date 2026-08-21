@@ -1,10 +1,8 @@
 import axios, { AxiosError } from 'axios';
 import tokenService from '../services/tokenService';
 import toast from 'react-hot-toast';
+import { STORAGE_KEYS } from '../constants';
 
-// =============================================
-// Axios client centralized instance
-// =============================================
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
   timeout: 15000,
@@ -13,11 +11,8 @@ const axiosClient = axios.create({
   },
 });
 
-// ─── Request Interceptor ─────────────────────
-// Automatically attaches JWT token to every request
 axiosClient.interceptors.request.use(
   (config) => {
-    console.log('API Request:', config.method?.toUpperCase(), config.url);
     const token = tokenService.getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -27,29 +22,34 @@ axiosClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ─── Response Interceptor ────────────────────
-// Global error handling: 401 -> logout, 5xx -> toast
 axiosClient.interceptors.response.use(
-  (response) => {
-    console.log('API Response:', response.status, response.config.method?.toUpperCase(), response.config.url);
-    return response;
-  },
-  (error: AxiosError<{ message?: string }>) => {
-    console.error('API Error:', error.response?.status, error.config?.method?.toUpperCase(), error.config?.url, error.response?.data);
+  (response) => response,
+  (error: AxiosError<{ message?: string; errors?: Record<string, string> }>) => {
     const status = error.response?.status;
     const message = error.response?.data?.message;
+    const fieldErrors = error.response?.data?.errors;
 
     if (status === 401) {
-      tokenService.removeToken();
-      localStorage.removeItem('badmishop_user');
-      window.location.href = '/dang-nhap';
-      toast.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+      const url = error.config?.url ?? '';
+      const isAuthAttempt = /\/api\/auth\/(login|register|google|forgot-password|reset-password|verify-email|resend-verification|change-password)/.test(url);
+      if (!isAuthAttempt) {
+        tokenService.removeToken();
+        localStorage.removeItem(STORAGE_KEYS.USER);
+        window.location.href = '/dang-nhap';
+        toast.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+      } else if (message) {
+        toast.error(message);
+      }
     } else if (status === 403) {
-      toast.error('Bạn không có quyền thực hiện thao tác này.');
+      toast.error(message || 'Bạn không có quyền thực hiện thao tác này.');
     } else if (status === 404) {
       toast.error(message || 'Không tìm thấy tài nguyên yêu cầu.');
+    } else if (status === 429) {
+      toast.error(message || 'Quá nhiều lần thử. Vui lòng thử lại sau.');
     } else if (status && status >= 500) {
       toast.error('Lỗi máy chủ. Vui lòng thử lại sau.');
+    } else if (status === 400 && fieldErrors && Object.keys(fieldErrors).length > 0) {
+      // Field errors are shown under inputs; skip a duplicate toast.
     } else if (message) {
       toast.error(message);
     }

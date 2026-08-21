@@ -1,48 +1,72 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, LogIn } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { LogIn } from 'lucide-react';
 import { useAuth } from '../../store/AuthContext';
 import { ROUTES } from '../../constants/routes';
+import GoogleSignInButton from '../../components/auth/GoogleSignInButton';
+import PasswordField from '../../components/auth/PasswordField';
+import authApi from '../../api/authApi';
+import toast from 'react-hot-toast';
+import { normalizeEmail, validateEmail } from '../../utils/authValidation';
 
 const LoginPage = () => {
   const { login } = useAuth();
-  const navigate   = useNavigate();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const loginState = (location.state as { registeredEmail?: string; verifyUrl?: string } | null) ?? {};
+  const registeredEmail = loginState.registeredEmail;
 
-  const [email,    setEmail]    = useState('');
+  const [email, setEmail] = useState(registeredEmail ?? '');
   const [password, setPassword] = useState('');
-  const [showPw,   setShowPw]   = useState(false);
-  const [loading,  setLoading]  = useState(false);
-  const [errors,   setErrors]   = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [needsVerify, setNeedsVerify] = useState(Boolean(registeredEmail));
+  const [verifyUrl, setVerifyUrl] = useState(loginState.verifyUrl ?? '');
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (!email)              errs.email    = 'Email không được để trống.';
-    else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Email không hợp lệ.';
-    if (!password)           errs.password = 'Mật khẩu không được để trống.';
-    else if (password.length < 6) errs.password = 'Mật khẩu ít nhất 6 ký tự.';
+    const emailErr = validateEmail(email);
+    if (emailErr) errs.email = emailErr;
+    if (!password) errs.password = 'Vui lòng nhập mật khẩu';
     return errs;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('Form submitted!');
     e.preventDefault();
-    console.log('Validation starting...');
     const errs = validate();
-    console.log('Validation errors:', errs);
-    if (Object.keys(errs).length) { setErrors(errs); return; }
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      return;
+    }
     setErrors({});
+    setNeedsVerify(false);
     setLoading(true);
-    console.log('Starting login process...');
     try {
-      console.log('Calling login...');
-      await login({ email, password });
-      console.log('Login completed, navigating to:', ROUTES.HOME);
+      await login({ email: normalizeEmail(email), password });
       navigate(ROUTES.HOME);
-    } catch (error) {
-      console.error('Login failed:', error);
-      // Error handled by axios interceptor + react-hot-toast
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number; data?: { message?: string } } })?.response?.status;
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? '';
+      if (status === 403 || /xác thực/i.test(msg)) {
+        setNeedsVerify(true);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    const emailErr = validateEmail(email);
+    if (emailErr) {
+      toast.error(emailErr);
+      return;
+    }
+    try {
+      const res = await authApi.resendVerification(normalizeEmail(email));
+      if (res.verifyUrl) setVerifyUrl(res.verifyUrl);
+      toast.success(res.message);
+    } catch {
+      // interceptor
     }
   };
 
@@ -51,69 +75,80 @@ const LoginPage = () => {
       <h2 className="auth-title">Đăng nhập</h2>
       <p className="auth-subtitle">Chào mừng trở lại! Đăng nhập để tiếp tục.</p>
 
-      {/* Test button */}
-      <button onClick={() => console.log('Test button clicked!')} style={{ marginBottom: 10, padding: 5, background: 'red', color: 'white' }}>
-        Test Console
-      </button>
+      {registeredEmail && (
+        <div className="auth-banner-success">
+          Đã tạo tài khoản cho <strong>{registeredEmail}</strong>. Kiểm tra hộp thư (và Spam) rồi nhấn
+          <strong> Xác thực email</strong>. Sau khi thành công, quay lại đây để đăng nhập.
+          {verifyUrl && (
+            <div style={{ marginTop: 12 }}>
+              <a href={verifyUrl} className="btn btn-primary" style={{ display: 'inline-flex' }}>
+                Mở trang xác thực
+              </a>
+              <p style={{ margin: '8px 0 0', fontSize: '0.8rem' }}>
+                Nếu Gmail chưa tới, dùng nút trên (SMTP chưa cấu hình trên máy local).
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
-      <form className="auth-form" onSubmit={handleSubmit}>
-        {/* Email */}
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <div className={`input-wrap${errors.email ? ' input-error' : ''}`}>
-          <label className="input-label">Email</label>
+          <label className="input-label" htmlFor="login-email">Email</label>
           <input
             id="login-email"
             type="email"
             className="input-field"
             placeholder="email@example.com"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
           />
           {errors.email && <span className="input-message">{errors.email}</span>}
         </div>
 
-        {/* Password */}
-        <div className={`input-wrap${errors.password ? ' input-error' : ''}`}>
-          <label className="input-label">Mật khẩu</label>
-          <div style={{ position: 'relative' }}>
-            <input
-              id="login-password"
-              type={showPw ? 'text' : 'password'}
-              className="input-field"
-              placeholder="••••••••"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              autoComplete="current-password"
-              style={{ paddingRight: 44 }}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPw(s => !s)}
-              style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}
-            >
-              {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+        <PasswordField
+          id="login-password"
+          label="Mật khẩu"
+          value={password}
+          error={errors.password}
+          autoComplete="current-password"
+          onChange={setPassword}
+        />
+
+        <div style={{ textAlign: 'right', marginTop: -8 }}>
+          <Link to={ROUTES.FORGOT_PASSWORD} style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+            Quên mật khẩu?
+          </Link>
+        </div>
+
+        {needsVerify && (
+          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+            Email chưa xác thực.{' '}
+            <button type="button" onClick={() => void handleResend()} style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontWeight: 600, cursor: 'pointer', padding: 0 }}>
+              Gửi lại email xác thực
             </button>
-          </div>
-          {errors.password && <span className="input-message">{errors.password}</span>}
-        </div>
+            {verifyUrl && (
+              <>
+                {' · '}
+                <a href={verifyUrl} style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+                  Mở trang xác thực
+                </a>
+              </>
+            )}
+          </p>
+        )}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <a href="#" style={{ fontSize: '0.875rem', color: 'var(--color-primary)', fontWeight: 600 }}>Quên mật khẩu?</a>
-        </div>
-
-        <button
-          id="login-submit"
-          type="submit"
-          className="btn btn-primary btn-full btn-lg"
-          disabled={loading}
-        >
-          {loading ? <div className="spinner" style={{ width: 20, height: 20, borderWidth: 3 }} /> : <><LogIn size={18} /> Đăng nhập</>}
+        <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+          <LogIn size={16} /> {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
         </button>
       </form>
 
+      <div className="auth-divider"><span>hoặc</span></div>
+      <GoogleSignInButton />
+
       <p className="auth-footer-text">
-        Chưa có tài khoản?{' '}
-        <Link to={ROUTES.REGISTER}>Đăng ký ngay</Link>
+        Chưa có tài khoản? <Link to={ROUTES.REGISTER}>Đăng ký ngay</Link>
       </p>
     </div>
   );

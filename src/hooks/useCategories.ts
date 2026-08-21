@@ -1,19 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
 import categoryApi from '../api/categoryApi';
+import brandApi from '../api/brandApi';
 import { QUERY_KEYS } from '../constants';
 
 export const useCategories = () => {
   return useQuery({
     queryKey: [QUERY_KEYS.CATEGORIES],
-    queryFn: () => categoryApi.getAll().then((r) => r.data),
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    queryFn: () => categoryApi.getAll(),
+    staleTime: 1000 * 60 * 10,
   });
 };
 
-export const useSubcategories = (categoryId?: number) => {
+export const useBrands = () => {
   return useQuery({
-    queryKey: [QUERY_KEYS.CATEGORIES, 'sub', categoryId],
-    queryFn: () => categoryApi.getSubcategories(categoryId).then((r) => r.data),
+    queryKey: [QUERY_KEYS.BRANDS],
+    queryFn: () => brandApi.getAll(),
     staleTime: 1000 * 60 * 10,
   });
 };

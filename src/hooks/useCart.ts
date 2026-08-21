@@ -8,7 +8,7 @@ export const useCart = () => {
   const { isAuthenticated } = useAuth();
   return useQuery({
     queryKey: [QUERY_KEYS.CART],
-    queryFn: () => cartApi.getCart().then((r) => r.data),
+    queryFn: () => cartApi.getCart(),
     enabled: isAuthenticated,
   });
 };
@@ -16,8 +16,8 @@ export const useCart = () => {
 export const useAddToCart = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ productId, quantity }: { productId: number; quantity: number }) =>
-      cartApi.addItem(productId, quantity),
+    mutationFn: ({ variantId, quantity }: { variantId: number; quantity: number }) =>
+      cartApi.addItem(variantId, quantity),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CART] });
       toast.success('Đã thêm vào giỏ hàng!');

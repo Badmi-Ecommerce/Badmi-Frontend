@@ -1,69 +1,78 @@
-import { mockProducts } from '../../../mocks/data';
+import { useQuery } from '@tanstack/react-query';
+import adminApi from '../../../api/adminApi';
+import orderApi from '../../../api/orderApi';
+import { formatCurrency } from '../../../utils';
+import type { Order, PagedResponse } from '../../../types';
 
 const AdminDashboard = () => {
+  const { data: products } = useQuery({
+    queryKey: ['admin-products-dash'],
+    queryFn: () => adminApi.listProducts(0, 1),
+  });
+  const { data: ordersPage } = useQuery({
+    queryKey: ['admin-orders'],
+    queryFn: () => orderApi.adminList() as Promise<PagedResponse<Order>>,
+  });
+
+  const recent = (ordersPage?.content ?? []).slice(0, 5);
+  const activeProducts = products?.totalElements ?? 0;
+  const totalOrders = ordersPage?.totalElements ?? 0;
+
   return (
     <div>
       <div className="admin-page-header">
         <h1 className="admin-page-title">Dashboard</h1>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: 20,
+          marginBottom: 32,
+        }}
+      >
         <div className="admin-card">
-          <h3 style={{ color: 'var(--color-text-secondary)', fontSize: '14px', marginBottom: '8px' }}>Total Income</h3>
-          <p style={{ fontSize: '28px', fontWeight: 800, color: 'var(--color-text-primary)' }}>₫125,000,000</p>
+          <h3 style={{ color: 'var(--color-text-secondary)', fontSize: 14, marginBottom: 8 }}>Total Orders</h3>
+          <p style={{ fontSize: 28, fontWeight: 800 }}>{totalOrders}</p>
         </div>
         <div className="admin-card">
-          <h3 style={{ color: 'var(--color-text-secondary)', fontSize: '14px', marginBottom: '8px' }}>Total Orders</h3>
-          <p style={{ fontSize: '28px', fontWeight: 800, color: 'var(--color-text-primary)' }}>342</p>
-        </div>
-        <div className="admin-card">
-          <h3 style={{ color: 'var(--color-text-secondary)', fontSize: '14px', marginBottom: '8px' }}>Active Products</h3>
-          <p style={{ fontSize: '28px', fontWeight: 800, color: 'var(--color-text-primary)' }}>{mockProducts.length}</p>
-        </div>
-        <div className="admin-card">
-          <h3 style={{ color: 'var(--color-text-secondary)', fontSize: '14px', marginBottom: '8px' }}>Active Users</h3>
-          <p style={{ fontSize: '28px', fontWeight: 800, color: 'var(--color-text-primary)' }}>1,204</p>
+          <h3 style={{ color: 'var(--color-text-secondary)', fontSize: 14, marginBottom: 8 }}>Products</h3>
+          <p style={{ fontSize: 28, fontWeight: 800 }}>{activeProducts}</p>
         </div>
       </div>
 
       <div className="admin-card">
-        <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '20px' }}>Recent Orders</h2>
-        <div className="admin-table-wrapper">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Date</th>
-                <th>Total</th>
-                <th>Status</th>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Recent Orders</h2>
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Customer</th>
+              <th>Date</th>
+              <th>Total</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recent.map((order) => (
+              <tr key={order.id}>
+                <td>{order.orderCode}</td>
+                <td>{order.recipientName}</td>
+                <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+                <td>{formatCurrency(Number(order.grandTotal))}</td>
+                <td>
+                  <span className="badge badge-hot">{order.status}</span>
+                </td>
               </tr>
-            </thead>
-            <tbody>
+            ))}
+            {recent.length === 0 && (
               <tr>
-                <td>#ORD-001</td>
-                <td>Nguyen Van A</td>
-                <td>2023-10-15</td>
-                <td>₫3,250,000</td>
-                <td><span className="badge badge-hot">Processing</span></td>
+                <td colSpan={5}>Chưa có đơn hàng</td>
               </tr>
-              <tr>
-                <td>#ORD-002</td>
-                <td>Tran Thi B</td>
-                <td>2023-10-14</td>
-                <td>₫1,500,000</td>
-                <td><span className="badge badge-new">Completed</span></td>
-              </tr>
-              <tr>
-                <td>#ORD-003</td>
-                <td>Le Van C</td>
-                <td>2023-10-12</td>
-                <td>₫5,400,000</td>
-                <td><span className="badge badge-new">Completed</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -1,22 +1,57 @@
 import axiosClient from './axiosClient';
+import { unwrap } from './unwrap';
 import { API_ENDPOINTS } from '../constants';
 import type { AuthResponse, LoginRequest, RegisterRequest, User } from '../types';
 
+export type MessageData = { message: string; verifyUrl?: string | null };
+
 const authApi = {
-  login(data: LoginRequest) {
-    return axiosClient.post<AuthResponse>(API_ENDPOINTS.LOGIN, data);
+  async login(data: LoginRequest) {
+    return unwrap(await axiosClient.post(API_ENDPOINTS.LOGIN, data)) as AuthResponse;
   },
 
-  register(data: RegisterRequest) {
-    return axiosClient.post<AuthResponse>(API_ENDPOINTS.REGISTER, data);
+  async register(data: RegisterRequest) {
+    return unwrap(await axiosClient.post(API_ENDPOINTS.REGISTER, data)) as MessageData;
   },
 
-  logout() {
-    return axiosClient.post(API_ENDPOINTS.LOGOUT);
+  async loginWithGoogle(idToken: string) {
+    return unwrap(await axiosClient.post(API_ENDPOINTS.GOOGLE, { idToken })) as AuthResponse;
   },
 
-  getMe() {
-    return axiosClient.get<User>(API_ENDPOINTS.ME);
+  async verifyEmail(token: string) {
+    return unwrap(await axiosClient.post(API_ENDPOINTS.VERIFY_EMAIL, { token })) as MessageData;
+  },
+
+  async resendVerification(email: string) {
+    return unwrap(await axiosClient.post(API_ENDPOINTS.RESEND_VERIFICATION, { email })) as MessageData;
+  },
+
+  async forgotPassword(email: string) {
+    return unwrap(await axiosClient.post(API_ENDPOINTS.FORGOT_PASSWORD, { email })) as MessageData;
+  },
+
+  async resetPassword(token: string, newPassword: string, confirmPassword: string) {
+    return unwrap(
+      await axiosClient.post(API_ENDPOINTS.RESET_PASSWORD, { token, newPassword, confirmPassword })
+    ) as MessageData;
+  },
+
+  async changePassword(currentPassword: string, newPassword: string, confirmPassword: string) {
+    return unwrap(
+      await axiosClient.post(API_ENDPOINTS.CHANGE_PASSWORD, {
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      })
+    ) as MessageData;
+  },
+
+  async logout() {
+    return unwrap(await axiosClient.post(API_ENDPOINTS.LOGOUT));
+  },
+
+  async getMe() {
+    return unwrap(await axiosClient.get(API_ENDPOINTS.ME)) as User;
   },
 };
 

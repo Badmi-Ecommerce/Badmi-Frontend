@@ -1,42 +1,36 @@
 import axiosClient from './axiosClient';
+import { unwrap } from './unwrap';
 import { API_ENDPOINTS } from '../constants';
-import type {
-  Product,
-  PaginatedResponse,
-  ProductFilters,
-} from '../types';
+import type { PagedResponse, Product, ProductFilters } from '../types';
+import { withProductImage } from '../types';
 
 const productApi = {
-  getAll(filters?: ProductFilters) {
-    return axiosClient.get<PaginatedResponse<Product>>(API_ENDPOINTS.PRODUCTS, {
-      params: filters,
-    });
+  async getAll(filters?: ProductFilters) {
+    const page = filters?.page ?? 0;
+    const limit = filters?.limit ?? 12;
+    const data = unwrap(
+      await axiosClient.get(API_ENDPOINTS.PRODUCTS, { params: { page, limit } })
+    ) as PagedResponse<Product>;
+    return {
+      ...data,
+      content: data.content.map(withProductImage),
+    };
   },
 
-  getById(id: number) {
-    return axiosClient.get<Product>(API_ENDPOINTS.PRODUCT_DETAIL(id));
+  async getById(id: number | string) {
+    return withProductImage(unwrap(await axiosClient.get(API_ENDPOINTS.PRODUCT_DETAIL(id))) as Product);
   },
 
-  getBySlug(slug: string) {
-    return axiosClient.get<Product>(API_ENDPOINTS.PRODUCT_BY_SLUG(slug));
+  async getBySlug(slug: string) {
+    return withProductImage(unwrap(await axiosClient.get(API_ENDPOINTS.PRODUCT_BY_SLUG(slug))) as Product);
   },
 
-  getByCategory(categoryId: number, filters?: Omit<ProductFilters, 'category_id'>) {
-    return axiosClient.get<PaginatedResponse<Product>>(API_ENDPOINTS.PRODUCTS, {
-      params: { category_id: categoryId, ...filters },
-    });
-  },
-
-  create(data: Partial<Product>) {
-    return axiosClient.post<Product>(API_ENDPOINTS.PRODUCTS, data);
-  },
-
-  update(id: number, data: Partial<Product>) {
-    return axiosClient.put<Product>(API_ENDPOINTS.PRODUCT_DETAIL(id), data);
-  },
-
-  delete(id: number) {
-    return axiosClient.delete(API_ENDPOINTS.PRODUCT_DETAIL(id));
+  async getByCategory(categoryId: number, opts?: { limit?: number }) {
+    const data = await productApi.getAll({ page: 0, limit: opts?.limit ?? 24 });
+    return {
+      ...data,
+      content: data.content.filter((p) => p.categoryId === categoryId),
+    };
   },
 };
 

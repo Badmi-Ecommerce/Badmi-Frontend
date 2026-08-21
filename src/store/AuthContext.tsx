@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { User, LoginRequest, RegisterRequest } from '../types';
 import authApi from '../api/authApi';
+import type { MessageData } from '../api/authApi';
 import tokenService from '../services/tokenService';
 import { STORAGE_KEYS } from '../constants';
 import toast from 'react-hot-toast';
@@ -13,52 +14,68 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   login: (data: LoginRequest) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
-  logout: () => void;
+  register: (data: RegisterRequest) => Promise<MessageData>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function readStoredAuth(): AuthState {
-  const stored = localStorage.getItem(STORAGE_KEYS.USER);
-  const token = tokenService.getToken();
-  if (stored && token) {
-    try {
-      const user = JSON.parse(stored) as User;
-      return { user, isAuthenticated: true, isLoading: false };
-    } catch {
-      return { user: null, isAuthenticated: false, isLoading: false };
-    }
-  }
-  return { user: null, isAuthenticated: false, isLoading: false };
-}
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, setState] = useState<AuthState>(readStoredAuth);
+  const [state, setState] = useState<AuthState>({
+    user: null,
+    isAuthenticated: false,
+    isLoading: true,
+  });
+
+  useEffect(() => {
+    const restore = async () => {
+      const token = tokenService.getToken();
+      if (!token) {
+        setState({ user: null, isAuthenticated: false, isLoading: false });
+        return;
+      }
+      try {
+        const user = await authApi.getMe();
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+        setState({ user, isAuthenticated: true, isLoading: false });
+      } catch {
+        tokenService.removeToken();
+        localStorage.removeItem(STORAGE_KEYS.USER);
+        setState({ user: null, isAuthenticated: false, isLoading: false });
+      }
+    };
+    void restore();
+  }, []);
 
   const login = useCallback(async (data: LoginRequest) => {
-    console.log('Login attempt:', data);
-    const response = await authApi.login(data);
-    console.log('Login response:', response);
-    const { token, user } = response.data;
-    console.log('Token:', token, 'User:', user);
+    const { token, user } = await authApi.login(data);
     tokenService.setToken(token);
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
     setState({ user, isAuthenticated: true, isLoading: false });
-    console.log('Login successful, navigating to home');
     toast.success(`Chào mừng trở lại, ${user.name}!`);
   }, []);
 
   const register = useCallback(async (data: RegisterRequest) => {
-    const response = await authApi.register(data);
-    const { token, user } = response.data;
+    const result = await authApi.register(data);
+    toast.success(result.message || 'Đăng ký thành công. Vui lòng xác thực email.');
+    return result;
+  }, []);
+
+  const loginWithGoogle = useCallback(async (idToken: string) => {
+    const { token, user } = await authApi.loginWithGoogle(idToken);
     tokenService.setToken(token);
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
     setState({ user, isAuthenticated: true, isLoading: false });
-    toast.success('Đăng ký thành công!');
+    toast.success(`Chào mừng, ${user.name}!`);
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // ignore
+    }
     tokenService.removeToken();
     localStorage.removeItem(STORAGE_KEYS.USER);
     setState({ user: null, isAuthenticated: false, isLoading: false });
@@ -66,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ ...state, login, register, logout }}>
+    <AuthContext.Provider value={{ ...state, login, register, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );
