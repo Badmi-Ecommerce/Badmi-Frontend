@@ -4,7 +4,7 @@ import { ROUTES } from '../../constants/routes';
 
 const WishlistPage = () => {
   // In a real app, this would use useWishlist() hook from React Query
-  const wishlistItems: any[] = [];
+  const wishlistItems: unknown[] = [];
 
   return (
     <div className="wishlist-page">

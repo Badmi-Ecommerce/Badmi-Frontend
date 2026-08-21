@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import type { User, LoginRequest, RegisterRequest } from '../types';
 import authApi from '../api/authApi';
 import tokenService from '../services/tokenService';
@@ -19,28 +19,22 @@ interface AuthContextValue extends AuthState {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    isAuthenticated: false,
-    isLoading: true,
-  });
-
-  // Restore user from localStorage on first load
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEYS.USER);
-    const token = tokenService.getToken();
-    if (stored && token) {
-      try {
-        const user: User = JSON.parse(stored);
-        setState({ user, isAuthenticated: true, isLoading: false });
-      } catch {
-        setState({ user: null, isAuthenticated: false, isLoading: false });
-      }
-    } else {
-      setState((prev) => ({ ...prev, isLoading: false }));
+function readStoredAuth(): AuthState {
+  const stored = localStorage.getItem(STORAGE_KEYS.USER);
+  const token = tokenService.getToken();
+  if (stored && token) {
+    try {
+      const user = JSON.parse(stored) as User;
+      return { user, isAuthenticated: true, isLoading: false };
+    } catch {
+      return { user: null, isAuthenticated: false, isLoading: false };
     }
-  }, []);
+  }
+  return { user: null, isAuthenticated: false, isLoading: false };
+}
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [state, setState] = useState<AuthState>(readStoredAuth);
 
   const login = useCallback(async (data: LoginRequest) => {
     console.log('Login attempt:', data);
@@ -78,6 +72,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// Hook is the public API of this module; Fast Refresh still applies to AuthProvider.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = (): AuthContextValue => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
