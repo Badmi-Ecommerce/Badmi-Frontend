@@ -19,10 +19,10 @@ export const useProductBySlug = (slug: string) => {
   });
 };
 
-export const useProductsByCategory = (categoryId: number, limit = 6) => {
+export const useProductsByCategory = (categoryId: number, size = 6) => {
   return useQuery({
     queryKey: [QUERY_KEYS.PRODUCTS, 'category', categoryId],
-    queryFn: () => productApi.getByCategory(categoryId, { limit }),
+    queryFn: () => productApi.getByCategory(categoryId, { size }),
     enabled: !!categoryId,
     staleTime: 1000 * 60 * 5,
   });

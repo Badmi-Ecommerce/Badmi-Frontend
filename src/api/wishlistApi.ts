@@ -10,7 +10,7 @@ const wishlistApi = {
 
   async add(productId: number) {
     return unwrap(
-      await axiosClient.post(API_ENDPOINTS.WISHLIST_ADD, { productId })
+      await axiosClient.post(API_ENDPOINTS.WISHLIST, { productId })
     ) as WishlistItem;
   },
 

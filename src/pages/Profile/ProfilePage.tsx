@@ -1,6 +1,6 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Package, Heart, ShoppingCart, Shield } from 'lucide-react';
+import { LogOut, Package, Heart, ShoppingCart, Shield, Store } from 'lucide-react';
 import { useAuth } from '../../store/AuthContext';
 import { ROUTES } from '../../constants/routes';
 import type { CSSProperties } from 'react';
@@ -10,16 +10,13 @@ import toast from 'react-hot-toast';
 import { PASSWORD_HINT, validateConfirmPassword, validatePassword } from '../../utils/authValidation';
 
 const rowStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: '140px 1fr',
-  gap: 12,
   padding: '12px 0',
   borderBottom: '1px solid var(--color-border-light)',
   fontSize: '0.95rem',
 };
 
 const ProfilePage = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, becomeOwner } = useAuth();
   const navigate = useNavigate();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -87,6 +84,7 @@ const ProfilePage = () => {
   }
 
   const isAdmin = user.role === 'admin';
+  const isOwner = user.role === 'owner';
 
   return (
     <div className="container" style={{ padding: '32px 0', maxWidth: 720 }}>
@@ -94,23 +92,23 @@ const ProfilePage = () => {
 
       <div className="admin-card" style={{ marginBottom: 16 }}>
         <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 8 }}>Thông tin cá nhân</h2>
-        <div style={rowStyle}>
+        <div className="profile-row" style={rowStyle}>
           <span style={{ color: 'var(--color-text-muted)' }}>Họ tên</span>
           <strong>{user.name}</strong>
         </div>
-        <div style={rowStyle}>
+        <div className="profile-row" style={rowStyle}>
           <span style={{ color: 'var(--color-text-muted)' }}>Email</span>
           <span>{user.email}</span>
         </div>
-        <div style={rowStyle}>
+        <div className="profile-row" style={rowStyle}>
           <span style={{ color: 'var(--color-text-muted)' }}>Số điện thoại</span>
           <span>{user.phone || '—'}</span>
         </div>
-        <div style={rowStyle}>
+        <div className="profile-row" style={rowStyle}>
           <span style={{ color: 'var(--color-text-muted)' }}>Địa chỉ</span>
           <span>{user.address || '—'}</span>
         </div>
-        <div style={{ ...rowStyle, borderBottom: 'none' }}>
+        <div className="profile-row" style={{ ...rowStyle, borderBottom: 'none' }}>
           <span style={{ color: 'var(--color-text-muted)' }}>Xác thực email</span>
           <span>{user.emailVerified ? 'Đã xác thực' : 'Chưa xác thực'}</span>
         </div>
@@ -172,6 +170,30 @@ const ProfilePage = () => {
           <Link to={ROUTES.ADMIN_DASHBOARD} className="btn btn-secondary">
             <Shield size={16} /> Quản trị
           </Link>
+        )}
+        {isOwner && (
+          <Link to={ROUTES.OWNER_DASHBOARD} className="btn btn-secondary">
+            <Store size={16} /> Kênh người bán
+          </Link>
+        )}
+        {!isAdmin && !isOwner && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => {
+              if (!user.emailVerified) {
+                toast.error('Xác thực email trước khi mở kênh bán.');
+                return;
+              }
+              if (confirm('Mở kênh bán hàng để đăng vợt, giày, quần áo và phụ kiện cầu lông của bạn?')) {
+                void becomeOwner()
+                  .then(() => navigate(ROUTES.OWNER_DASHBOARD))
+                  .catch(() => undefined);
+              }
+            }}
+          >
+            <Store size={16} /> Become Owner
+          </button>
         )}
       </div>
 

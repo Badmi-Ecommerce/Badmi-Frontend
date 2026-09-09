@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+﻿import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import adminApi from '../../../api/adminApi';
 import { QUERY_KEYS } from '../../../constants';
@@ -136,17 +136,8 @@ const AdminCategories = () => {
       </div>
 
       {isModalOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-          }}
-        >
+        <div className="modal-overlay">
+
           <div className="admin-card" style={{ width: '100%', maxWidth: 500 }}>
             <h2 style={{ marginBottom: 20, fontSize: 20, fontWeight: 800 }}>
               {editing ? 'Edit Category' : 'Add Category'}

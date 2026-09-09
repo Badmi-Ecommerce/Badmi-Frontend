@@ -11,7 +11,7 @@ const AdminDashboard = () => {
   });
   const { data: ordersPage } = useQuery({
     queryKey: ['admin-orders'],
-    queryFn: () => orderApi.adminList() as Promise<PagedResponse<Order>>,
+    queryFn: () => orderApi.adminList(0, 20) as Promise<PagedResponse<Order>>,
   });
 
   const recent = (ordersPage?.content ?? []).slice(0, 5);

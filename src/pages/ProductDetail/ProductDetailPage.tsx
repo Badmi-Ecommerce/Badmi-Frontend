@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, Navigate } from 'react-router-dom';
 import { ShoppingCart, Heart, ChevronRight, Minus, Plus } from 'lucide-react';
 import { formatCurrency, calcDiscount } from '../../utils';
 import { useProductBySlug, useProducts } from '../../hooks/useProducts';
@@ -21,7 +21,7 @@ const ProductDetailPage = () => {
 
   const { data: product, isLoading, isError } = useProductBySlug(slug || '');
   const { data: categories = [] } = useCategories();
-  const { data: relatedPage } = useProducts({ page: 0, limit: 24 });
+  const { data: relatedPage } = useProducts({ page: 0, size: 24 });
 
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
@@ -54,6 +54,11 @@ const ProductDetailPage = () => {
         </div>
       </div>
     );
+  }
+
+  // Tin pass có trang riêng kèm thông tin liên hệ người bán.
+  if (product.listingType === 'PASS') {
+    return <Navigate to={`${ROUTES.PASS}/${product.slug}`} replace />;
   }
 
   const category = categories.find((c) => c.id === product.categoryId);

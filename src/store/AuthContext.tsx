@@ -16,6 +16,7 @@ interface AuthContextValue extends AuthState {
   login: (data: LoginRequest) => Promise<void>;
   register: (data: RegisterRequest) => Promise<MessageData>;
   loginWithGoogle: (idToken: string) => Promise<void>;
+  becomeOwner: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -70,6 +71,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     toast.success(`Chào mừng, ${user.name}!`);
   }, []);
 
+  const becomeOwner = useCallback(async () => {
+    const user = await authApi.becomeOwner();
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    setState({ user, isAuthenticated: true, isLoading: false });
+    toast.success('Đã mở kênh bán hàng. Bạn có thể đăng sản phẩm cầu lông của mình.');
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
@@ -83,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ ...state, login, register, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ ...state, login, register, loginWithGoogle, becomeOwner, logout }}>
       {children}
     </AuthContext.Provider>
   );

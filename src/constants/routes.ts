@@ -13,6 +13,8 @@ export const ROUTES = {
   ORDER_DETAIL: '/don-hang/:id',
   PROFILE: '/tai-khoan',
   STORES: '/cua-hang',
+  PASS: '/hang-pass',
+  PASS_DETAIL: '/hang-pass/:slug',
   NEWS: '/tin-tuc',
   TRAINING: '/dao-tao',
   DEALS: '/giam-gia',
@@ -24,4 +26,8 @@ export const ROUTES = {
   ADMIN_PRODUCTS: '/admin/products',
   ADMIN_CATEGORIES: '/admin/categories',
   ADMIN_BRANDS: '/admin/brands',
+  OWNER: '/owner',
+  OWNER_DASHBOARD: '/owner/dashboard',
+  OWNER_PRODUCTS: '/owner/products',
+  OWNER_SHOP: '/owner/shop',
 } as const;

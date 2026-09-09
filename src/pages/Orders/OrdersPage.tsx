@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import orderApi from '../../api/orderApi';
 import { QUERY_KEYS } from '../../constants';
@@ -41,7 +42,9 @@ const OrdersPage = () => {
             <tbody>
               {orders.map((order) => (
                 <tr key={order.id}>
-                  <td>{order.orderCode}</td>
+                  <td>
+                    <Link to={`/don-hang/${order.id}`}>{order.orderCode}</Link>
+                  </td>
                   <td>{order.status}</td>
                   <td>{order.paymentStatus}</td>
                   <td>{order.items.reduce((sum, item) => sum + item.quantity, 0)}</td>

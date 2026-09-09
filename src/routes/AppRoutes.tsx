@@ -7,9 +7,13 @@ import PrivateRoute from './PrivateRoute';
 import HomePage from '../pages/Home/HomePage';
 import ProductsPage from '../pages/Products/ProductsPage';
 import ProductDetailPage from '../pages/ProductDetail/ProductDetailPage';
+import StoresPage from '../pages/Stores/StoresPage';
+import PassPage from '../pages/Pass/PassPage';
+import PassDetailPage from '../pages/Pass/PassDetailPage';
 import CartPage from '../pages/Cart/CartPage';
 import WishlistPage from '../pages/Wishlist/WishlistPage';
 import OrdersPage from '../pages/Orders/OrdersPage';
+import OrderDetailPage from '../pages/Orders/OrderDetailPage';
 import ProfilePage from '../pages/Profile/ProfilePage';
 import LoginPage from '../pages/Auth/LoginPage';
 import RegisterPage from '../pages/Auth/RegisterPage';
@@ -26,6 +30,11 @@ import AdminProducts from '../pages/Admin/Products/AdminProducts';
 import AdminCategories from '../pages/Admin/Categories/AdminCategories';
 import AdminBrands from '../pages/Admin/Brands/AdminBrands';
 import AdminOrders from '../pages/Admin/Orders/AdminOrders';
+import OwnerLayout from '../layouts/OwnerLayout';
+import OwnerRoute from './OwnerRoute';
+import OwnerDashboard from '../pages/Owner/Dashboard/OwnerDashboard';
+import OwnerProducts from '../pages/Owner/Products/OwnerProducts';
+import OwnerShop from '../pages/Owner/Shop/OwnerShop';
 
 const AppRoutes = () => {
   return (
@@ -36,6 +45,9 @@ const AppRoutes = () => {
         <Route path={ROUTES.PRODUCTS} element={<ProductsPage />} />
         <Route path={ROUTES.PRODUCT_DETAIL} element={<ProductDetailPage />} />
         <Route path={ROUTES.DEALS} element={<ProductsPage />} />
+        <Route path={ROUTES.STORES} element={<StoresPage />} />
+        <Route path={ROUTES.PASS} element={<PassPage />} />
+        <Route path={ROUTES.PASS_DETAIL} element={<PassDetailPage />} />
       </Route>
 
       {/* ─── Private Routes (require login) ─── */}
@@ -44,6 +56,7 @@ const AppRoutes = () => {
           <Route path={ROUTES.CART} element={<CartPage />} />
           <Route path={ROUTES.WISHLIST} element={<WishlistPage />} />
           <Route path={ROUTES.ORDERS} element={<OrdersPage />} />
+          <Route path={ROUTES.ORDER_DETAIL} element={<OrderDetailPage />} />
           <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
         </Route>
       </Route>
@@ -66,6 +79,15 @@ const AppRoutes = () => {
           <Route path={ROUTES.ADMIN_CATEGORIES} element={<AdminCategories />} />
           <Route path={ROUTES.ADMIN_BRANDS} element={<AdminBrands />} />
           <Route path="/admin/orders" element={<AdminOrders />} />
+        </Route>
+      </Route>
+
+      <Route element={<OwnerLayout />}>
+        <Route element={<OwnerRoute />}>
+          <Route path={ROUTES.OWNER} element={<Navigate to={ROUTES.OWNER_DASHBOARD} replace />} />
+          <Route path={ROUTES.OWNER_DASHBOARD} element={<OwnerDashboard />} />
+          <Route path={ROUTES.OWNER_PRODUCTS} element={<OwnerProducts />} />
+          <Route path={ROUTES.OWNER_SHOP} element={<OwnerShop />} />
         </Route>
       </Route>
 

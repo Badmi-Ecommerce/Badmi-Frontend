@@ -11,6 +11,14 @@ export const useCategories = () => {
   });
 };
 
+export const useSubcategories = (categoryId?: number) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.SUBCATEGORIES, categoryId ?? 'all'],
+    queryFn: () => categoryApi.getSubcategories(categoryId),
+    staleTime: 1000 * 60 * 10,
+  });
+};
+
 export const useBrands = () => {
   return useQuery({
     queryKey: [QUERY_KEYS.BRANDS],

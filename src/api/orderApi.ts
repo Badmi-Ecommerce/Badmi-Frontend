@@ -1,7 +1,7 @@
 import axiosClient from './axiosClient';
 import { unwrap } from './unwrap';
 import { API_ENDPOINTS } from '../constants';
-import type { Order, PagedResponse } from '../types';
+import type { Order, OrderQuote, PagedResponse } from '../types';
 
 const orderApi = {
   async mine() {
@@ -12,12 +12,28 @@ const orderApi = {
     return unwrap(await axiosClient.get(API_ENDPOINTS.ORDER_DETAIL(id))) as Order;
   },
 
-  async checkout(payload: { addressId?: number; paymentMethod?: string; customerNote?: string }) {
+  async quote(payload: { voucherCode?: string }) {
+    return unwrap(await axiosClient.post(API_ENDPOINTS.ORDER_QUOTE, payload)) as OrderQuote;
+  },
+
+  async checkout(payload: {
+    addressId?: number;
+    paymentMethod?: string;
+    customerNote?: string;
+    idempotencyKey: string;
+    voucherCode?: string;
+  }) {
     return unwrap(await axiosClient.post(API_ENDPOINTS.ORDER_CHECKOUT, payload)) as Order;
   },
 
-  async adminList() {
-    return unwrap(await axiosClient.get(API_ENDPOINTS.ADMIN_ORDERS)) as PagedResponse<Order>;
+  async pay(id: number | string) {
+    return unwrap(await axiosClient.post(API_ENDPOINTS.ORDER_PAY(id))) as Order;
+  },
+
+  async adminList(page = 0, size = 20) {
+    return unwrap(
+      await axiosClient.get(API_ENDPOINTS.ADMIN_ORDERS, { params: { page, size } })
+    ) as PagedResponse<Order>;
   },
 
   async updateStatus(id: number | string, status: string, note?: string) {

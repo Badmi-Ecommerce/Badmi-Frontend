@@ -53,6 +53,10 @@ const authApi = {
   async getMe() {
     return unwrap(await axiosClient.get(API_ENDPOINTS.ME)) as User;
   },
+
+  async becomeOwner() {
+    return unwrap(await axiosClient.post(API_ENDPOINTS.BECOME_OWNER)) as User;
+  },
 };
 
 export default authApi;
