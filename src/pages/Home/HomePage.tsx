@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ArrowRight, Play, ChevronRight } from 'lucide-react';
+import { Search, ArrowRight, Play, ChevronRight, MapPin, User } from 'lucide-react';
 import ProductCard from '../../components/shared/ProductCard/ProductCard';
 import { useProducts } from '../../hooks/useProducts';
 import { useCategories } from '../../hooks/useCategories';
@@ -8,17 +8,10 @@ import { useAddToCart } from '../../hooks/useCart';
 import { useAuth } from '../../store/AuthContext';
 import { ROUTES } from '../../constants/routes';
 import { HOTLINE, WEBSITE } from '../../constants';
+import { DA_NANG_CITY } from '../../constants/danang';
+import { useShops } from '../../hooks/useShops';
 import type { Product } from '../../types';
 import toast from 'react-hot-toast';
-
-// ─── Mock store images ──────────────────────────────────
-const STORES = [
-  { id: 1, tag: 'CS10', name: 'Badmishop Thạc Ngọc Hiếu', img: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=80' },
-  { id: 2, tag: 'CS11', name: 'Badmishop Nguyễn Trãi', img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80' },
-  { id: 3, tag: 'CS1',  name: 'Badmishop Trường Chinh', img: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=80' },
-  { id: 4, tag: 'CS2',  name: 'Badmishop Tôn Phú',    img: 'https://images.unsplash.com/photo-1586880244406-556ebe35f282?w=400&q=80' },
-  { id: 5, tag: 'CS3',  name: 'Badmishop Long Biên',  img: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=80' },
-];
 
 const CATEGORY_PASTEL = ['#FFE8E8', '#E8F0FF', '#E8FFF3', '#FFFBE8', '#F3E8FF', '#FFF3E8', '#FFE8F5', '#E8FFFA'];
 
@@ -89,7 +82,8 @@ const HomePage = () => {
   const [activeDot, setActiveDot] = useState(0);
 
   const { data: categories = [] } = useCategories();
-  const { data: productsPage } = useProducts({ page: 0, limit: 24 });
+  const { data: shops = [] } = useShops({ city: DA_NANG_CITY, shopType: 'SHOP' });
+  const { data: productsPage } = useProducts({ page: 0, size: 24 });
   const products = productsPage?.content ?? [];
   const rackets = products.filter((p) => p.categoryId === (categories[0]?.id ?? 1));
   const bags = products.filter((p) => p.categoryId === (categories[2]?.id ?? categories[1]?.id ?? 3));
@@ -308,10 +302,10 @@ const HomePage = () => {
         <div className="container">
           <div className="stores-header-row">
             <div>
-              <h2 className="section-title" style={{ marginBottom: 8 }}>Hệ thống cửa hàng</h2>
+              <h2 className="section-title" style={{ marginBottom: 8 }}>Shop cầu lông tại Đà Nẵng</h2>
               <p className="stores-description">
-                Badmishop tự hào là hệ thống cửa hàng lớn nhất Hà Nội giúp bạn Khách hàng thuận tiện
-                mua sắm và đặt hàng sản phẩm thể thao.
+                {shops.length} shop cầu lông ở Đà Nẵng đã đăng ký bán trên Badmishop, mỗi shop tự
+                quản lý hàng và tư vấn trực tiếp.
               </p>
             </div>
             <Link to={ROUTES.STORES} className="view-all-btn">
@@ -319,15 +313,26 @@ const HomePage = () => {
             </Link>
           </div>
           <div className="stores-scroll">
-            {STORES.map(store => (
-              <div key={store.id} className="store-card">
+            {shops.map(shop => (
+              <Link key={shop.id} to={`${ROUTES.PRODUCTS}?shop=${shop.userId}`} className="store-card">
                 <div className="store-card-img">
-                  <img src={store.img} alt={store.name} loading="lazy" />
+                  <img
+                    src={shop.coverUrl || 'https://placehold.co/400x300/FFF3E8/FF6600?text=Badmishop'}
+                    alt={shop.shopName}
+                    loading="lazy"
+                  />
                 </div>
                 <div className="store-card-info">
-                  <div className="store-card-tag">{store.tag}: {store.name}</div>
+                  <div className="store-card-tag">Shop đã đăng ký</div>
+                  <div className="store-card-name">{shop.shopName}</div>
+                  <div className="store-card-owner">
+                    <User size={12} /> {shop.ownerName}
+                  </div>
+                  <div className="store-card-owner">
+                    <MapPin size={12} /> {shop.district ? `Q. ${shop.district}` : shop.city}
+                  </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

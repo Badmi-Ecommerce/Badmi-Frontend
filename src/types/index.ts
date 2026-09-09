@@ -29,6 +29,31 @@ export interface Brand {
   updatedAt: string;
 }
 
+export type ShopType = 'SHOP' | 'PERSONAL';
+
+export interface Shop {
+  id: number;
+  userId: number;
+  shopName: string;
+  slug: string;
+  shopType: ShopType;
+  description?: string;
+  avatarUrl?: string;
+  coverUrl?: string;
+  phone?: string;
+  facebookUrl?: string;
+  zaloPhone?: string;
+  addressLine?: string;
+  district?: string;
+  city: string;
+  openHours?: string;
+  services: string[];
+  ownerName?: string;
+  productCount: number;
+  passCount: number;
+  joinedAt: string;
+}
+
 export interface ProductVariant {
   id: number;
   sku: string;
@@ -55,8 +80,15 @@ export interface Product {
   categoryId: number;
   subcategoryId?: number;
   brandId?: number;
+  ownerId?: number;
   isActive: boolean;
   status?: string;
+  /** NEW = hàng mới bán ra, PASS = hàng đã qua sử dụng người bán pass lại. */
+  listingType?: ListingType;
+  conditionPercent?: number;
+  usageDuration?: string;
+  passReason?: string;
+  isNegotiable?: boolean;
   createdAt: string;
   updatedAt: string;
   variants?: ProductVariant[];
@@ -71,7 +103,7 @@ export interface User {
   email: string;
   phone?: string;
   address?: string;
-  role: 'customer' | 'admin';
+  role: 'customer' | 'admin' | 'owner';
   emailVerified?: boolean;
   created_at?: string;
   updated_at?: string;
@@ -95,6 +127,7 @@ export interface Order {
   orderCode: string;
   status: string;
   paymentStatus: string;
+  paymentMethod?: string;
   recipientName: string;
   recipientPhone: string;
   shippingAddress: string;
@@ -102,11 +135,36 @@ export interface Order {
   shippingDistrict?: string;
   shippingProvince: string;
   subtotal: number;
+  discountAmount?: number;
   shippingFee: number;
+  taxAmount?: number;
   grandTotal: number;
+  voucherCode?: string;
   customerNote?: string;
   items: OrderItem[];
   createdAt: string;
+}
+
+export interface OrderQuote {
+  subtotal: number;
+  discountAmount: number;
+  shippingFee: number;
+  taxAmount: number;
+  grandTotal: number;
+  voucherCode?: string;
+  freeShipping: boolean;
+}
+
+export interface Address {
+  id: number;
+  recipientName: string;
+  recipientPhone: string;
+  addressLine: string;
+  ward?: string;
+  district?: string;
+  province: string;
+  isDefault?: boolean;
+  createdAt?: string;
 }
 
 export interface CartItem {
@@ -148,6 +206,13 @@ export interface PagedResponse<T> {
   totalPages: number;
 }
 
+export interface OwnerDashboard {
+  productCount: number;
+  activeCount: number;
+  hiddenCount: number;
+  totalStock: number;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -166,6 +231,8 @@ export interface AuthResponse {
   user: User;
 }
 
+export type ListingType = 'NEW' | 'PASS';
+
 export interface ProductFilters {
   categoryId?: number;
   subcategoryId?: number;
@@ -173,8 +240,10 @@ export interface ProductFilters {
   minPrice?: number;
   maxPrice?: number;
   search?: string;
+  /** Không truyền = chỉ hàng mới (mặc định của API), 'ALL' = cả tin pass. */
+  listingType?: ListingType | 'ALL';
   page?: number;
-  limit?: number;
+  size?: number;
   sort?: 'price_asc' | 'price_desc' | 'newest' | 'popular';
 }
 

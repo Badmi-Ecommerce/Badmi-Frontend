@@ -10,7 +10,7 @@ const cartApi = {
 
   async addItem(variantId: number, quantity: number) {
     return unwrap(
-      await axiosClient.post(API_ENDPOINTS.CART_ADD, { variantId, quantity })
+      await axiosClient.post(API_ENDPOINTS.CART, { variantId, quantity })
     ) as CartItem;
   },
 

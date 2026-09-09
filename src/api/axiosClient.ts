@@ -17,6 +17,9 @@ axiosClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -44,6 +47,8 @@ axiosClient.interceptors.response.use(
       toast.error(message || 'Bạn không có quyền thực hiện thao tác này.');
     } else if (status === 404) {
       toast.error(message || 'Không tìm thấy tài nguyên yêu cầu.');
+    } else if (status === 409) {
+      toast.error(message || 'Dữ liệu vừa được cập nhật. Vui lòng thử lại.');
     } else if (status === 429) {
       toast.error(message || 'Quá nhiều lần thử. Vui lòng thử lại sau.');
     } else if (status && status >= 500) {

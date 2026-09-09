@@ -1,10 +1,11 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+﻿import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import adminApi from '../../../api/adminApi';
 import { useCategories } from '../../../hooks/useCategories';
 import { QUERY_KEYS } from '../../../constants';
 import type { Product } from '../../../types';
 import toast from 'react-hot-toast';
+import ImageUploadField from '../../../components/shared/ImageUploadField';
 
 const emptyForm = {
   name: '',
@@ -183,17 +184,8 @@ const AdminProducts = () => {
       </div>
 
       {isModalOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-          }}
-        >
+        <div className="modal-overlay">
+
           <div className="admin-card" style={{ width: '100%', maxWidth: 600, maxHeight: '90vh', overflowY: 'auto' }}>
             <h2 style={{ marginBottom: 20, fontSize: 20, fontWeight: 800 }}>
               {editing ? 'Edit Product' : 'Add New Product'}
@@ -223,7 +215,7 @@ const AdminProducts = () => {
                     onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))}
                   />
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="form-grid-2">
                   <div className="input-wrap">
                     <label className="input-label">Price</label>
                     <input
@@ -244,7 +236,7 @@ const AdminProducts = () => {
                     />
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="form-grid-2">
                   <div className="input-wrap">
                     <label className="input-label">Stock</label>
                     <input
@@ -272,14 +264,10 @@ const AdminProducts = () => {
                     </select>
                   </div>
                 </div>
-                <div className="input-wrap">
-                  <label className="input-label">Image URL</label>
-                  <input
-                    className="input-field"
-                    value={form.image}
-                    onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))}
-                  />
-                </div>
+                <ImageUploadField
+                  value={form.image}
+                  onChange={(image) => setForm((f) => ({ ...f, image }))}
+                />
                 <div className="input-wrap">
                   <label className="input-label">Description</label>
                   <textarea

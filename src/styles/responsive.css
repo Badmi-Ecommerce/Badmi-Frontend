@@ -1,0 +1,234 @@
+/* =============================================
+   Layout dùng chung – gọi lại thay vì viết @media từng trang
+
+   Trang mới:
+     Lưới thẻ:   class="grid-auto"  +  style={{ ['--card-min']: '260px' }}
+     2 cột:      class="split"           (gộp 1 cột khi ≤768px)
+     Hero/banner class="split split-lg"  (gộp 1 cột khi ≤1024px)
+     Form:       class="form-grid-2" | form-grid-3
+     Ẩn hiện:    hide-lg (≤1024)  hide-md (≤768)  show-lg (chỉ hiện ≤1024)
+     Nút hàng:   class="btn-row"         (full width khi ≤480px)
+
+   Không dùng được CSS variable bên trong @media, nên breakpoint
+   giữ bằng số: 1024 / 768 / 480 (trùng --bp-* trong :root).
+   ============================================= */
+
+:root {
+  --bp-lg: 1024px;
+  --bp-md: 768px;
+  --bp-sm: 480px;
+  --card-min: 240px;
+  --split-cols: minmax(0, 1fr) minmax(0, 1fr);
+  --split-gap: var(--spacing-6);
+  --grid-gap: var(--spacing-4);
+}
+
+/* ── Lưới tự co: số cột = rộng màn / --card-min ── */
+.grid-auto,
+.categories-grid,
+.products-grid,
+.stores-grid,
+.pass-grid,
+.wishlist-grid,
+.products-list-grid,
+.stores-stats,
+.footer-grid {
+  display: grid;
+  gap: var(--grid-gap, var(--spacing-4));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--card-min, 240px)), 1fr));
+}
+
+.categories-grid { --card-min: 220px; }
+.products-grid { --card-min: 180px; --grid-gap: var(--spacing-3); }
+.stores-grid { --card-min: 280px; --grid-gap: var(--spacing-5); }
+.pass-grid { --card-min: 240px; }
+.wishlist-grid { --card-min: 200px; }
+.products-list-grid { --card-min: 220px; }
+.stores-stats { --card-min: 240px; }
+.footer-grid { --card-min: 280px; --grid-gap: var(--spacing-8); }
+
+/* ── 2/3 cột, gộp dọc theo .split / .split-lg ── */
+.split,
+.about-inner,
+.reviews-inner,
+.stores-hero-inner,
+.pass-hero-inner,
+.product-detail-layout,
+.cart-layout,
+.products-page-layout,
+.product-section-body,
+.pass-detail-layout,
+.pass-detail-specs,
+.listing-type-switch,
+.profile-row,
+.form-grid-2,
+.form-grid-3 {
+  display: grid;
+  gap: var(--split-gap, var(--spacing-6));
+  grid-template-columns: var(--split-cols, minmax(0, 1fr) minmax(0, 1fr));
+}
+
+.about-inner,
+.reviews-inner { --split-gap: var(--spacing-12); }
+.stores-hero-inner,
+.pass-hero-inner { --split-gap: var(--spacing-10); }
+.pass-hero-inner { --split-cols: minmax(0, 1.2fr) minmax(0, 1fr); }
+.products-page-layout { --split-cols: 280px minmax(0, 1fr); }
+.cart-layout { --split-cols: minmax(0, 1fr) 340px; }
+.product-section-body { --split-cols: 260px minmax(0, 1fr); }
+.product-detail-layout { --split-gap: var(--spacing-10); }
+.pass-detail-layout {
+  --split-cols: minmax(0, 420px) minmax(0, 1fr) minmax(0, 320px);
+  --split-gap: var(--spacing-8);
+}
+.pass-detail-specs { --split-cols: repeat(2, minmax(0, 1fr)); --split-gap: var(--spacing-3); }
+.listing-type-switch { --split-cols: 1fr 1fr; --split-gap: 10px; }
+.profile-row { --split-cols: 140px minmax(0, 1fr); --split-gap: 12px; }
+.form-grid-2 { --split-cols: repeat(2, minmax(0, 1fr)); --split-gap: 12px; }
+.form-grid-3 { --split-cols: repeat(3, minmax(0, 1fr)); --split-gap: 12px; }
+
+.btn-row,
+.product-detail-actions,
+.pass-detail-cta,
+.pass-seller-actions,
+.store-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+.show-lg { display: none; }
+
+/* Chữ co theo viewport — khỏi viết font-size trong 3 media query */
+.hero-title { font-size: clamp(1.25rem, 5vw, 2.8rem); }
+.stores-hero-title,
+.pass-hero-title { font-size: clamp(1.25rem, 4vw, 2.25rem); }
+.section-title { font-size: clamp(1.25rem, 3vw, 1.875rem); }
+.section-header h2,
+.product-section-title,
+.admin-page-title { font-size: clamp(1.25rem, 2.4vw, 1.5rem); }
+
+/* ── Tablet ── */
+@media (max-width: 1024px) {
+  .hide-lg,
+  .mega-menu,
+  .nav-caret { display: none !important; }
+
+  .show-lg,
+  .pass-detail-seller-mobile { display: block; }
+
+  .split-lg,
+  .stores-hero-inner,
+  .pass-hero-inner { grid-template-columns: 1fr; }
+
+  .product-section-body { --split-cols: 200px minmax(0, 1fr); }
+  .pass-detail-layout { --split-cols: minmax(0, 360px) minmax(0, 1fr); }
+  .pass-detail-seller-side { display: none; }
+
+  .stores-stats { margin-top: var(--spacing-6); }
+  .stores-stat:nth-child(3) { border-left: none; padding-left: 0; }
+}
+
+/* ── Điện thoại ── */
+@media (max-width: 768px) {
+  .hide-md,
+  .featured-banner,
+  .auth-left { display: none !important; }
+
+  .split,
+  .split-md,
+  .about-inner,
+  .reviews-inner,
+  .product-detail-layout,
+  .cart-layout,
+  .products-page-layout,
+  .product-section-body,
+  .pass-detail-layout,
+  .pass-detail-specs,
+  .listing-type-switch,
+  .form-grid-2,
+  .form-grid-3 { grid-template-columns: 1fr; }
+
+  .auth-right { width: 100%; }
+  .filter-sidebar { position: static; }
+  .filter-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .products-main-top { flex-direction: column; }
+  .sort-field { width: 100%; }
+  .product-detail-layout { padding: var(--spacing-5); gap: var(--spacing-6); }
+  .pass-detail-layout { padding: var(--spacing-4); }
+  .stores-invite-inner { padding: var(--spacing-6); }
+  .stores-stat + .stores-stat { border-left: none; padding-left: 0; }
+  .footer-bottom { flex-wrap: wrap; gap: var(--spacing-3); }
+  .footer-bottom-links { flex-wrap: wrap; }
+
+  .header-top { flex-wrap: wrap; gap: var(--spacing-2); }
+  .header-search { order: 3; flex-basis: 100%; }
+  .header-nav { overflow-x: auto; }
+  .nav-link { font-size: var(--font-size-xs); padding: 8px 10px; }
+
+  .cart-header { display: none; }
+  .cart-item { grid-template-columns: 1fr auto; gap: var(--spacing-2) var(--spacing-3); padding: var(--spacing-4); }
+  .cart-item-product { grid-column: 1 / -1; }
+  .cart-item-price, .cart-item-total { text-align: left; font-size: var(--font-size-sm); }
+  .cart-item-qty { justify-content: flex-start; }
+  .cart-item-price::before { content: 'Đơn giá: '; color: var(--color-text-muted); font-weight: 400; }
+  .cart-item-total::before { content: 'Thành tiền: '; color: var(--color-text-muted); font-weight: 400; }
+  .cart-summary { position: static; }
+
+  .admin-layout { flex-direction: column; }
+  .admin-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--color-border-light); }
+  .admin-sidebar-nav { flex-direction: row; overflow-x: auto; gap: 6px; padding: var(--spacing-2); }
+  .admin-nav-item {
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    white-space: nowrap;
+  }
+  .admin-nav-item:hover, .admin-nav-item.active { border-left-color: transparent; border-bottom-color: var(--color-primary); }
+  .admin-main { height: auto; overflow: visible; }
+  .admin-header { height: auto; padding: var(--spacing-3) var(--spacing-4); justify-content: flex-start; }
+  .admin-header > div { flex-wrap: wrap; }
+  .admin-content { padding: var(--spacing-4); }
+  .admin-page-header { flex-direction: column; align-items: flex-start; gap: var(--spacing-3); }
+  .admin-card { overflow-x: auto; }
+  .admin-table th, .admin-table td { padding: 10px 12px; font-size: var(--font-size-xs); white-space: nowrap; }
+}
+
+/* ── Điện thoại nhỏ ── */
+@media (max-width: 480px) {
+  .header-actions { gap: var(--spacing-4); margin-left: auto; }
+  .header-action-btn span:not(.action-badge) { display: none; }
+  .header-search-btn span { display: none; }
+  .header-nav { scrollbar-width: none; }
+  .header-nav::-webkit-scrollbar { display: none; }
+
+  .hero-banner, .hero-banner img, .hero-placeholder { min-height: 260px; }
+  .hero-banner img { height: 260px; }
+  .product-section-header { flex-wrap: wrap; gap: var(--spacing-2); }
+  .not-found-code { font-size: 5rem; }
+
+  .auth-right { padding: var(--spacing-8) var(--spacing-5); }
+  .search-label { font-size: var(--font-size-lg); }
+  .search-category-select { display: none; }
+  .search-bar-combo input { min-width: 0; }
+  .search-submit { padding: 11px 16px; }
+  .cart-summary-row { flex-wrap: wrap; }
+
+  .pass-toolbar { flex-direction: column; align-items: stretch; }
+  .pass-filters { flex-direction: column; }
+  .pass-field, .pass-field .sort-select { width: 100%; }
+  .pass-mini-card img { width: 68px; height: 68px; }
+  .filter-options { grid-template-columns: 1fr; }
+  .profile-row { grid-template-columns: 1fr; gap: 2px; }
+
+  .btn-row > .btn,
+  .btn-row > a,
+  .product-detail-actions .btn,
+  .pass-detail-cta .btn,
+  .pass-seller-actions .btn,
+  .store-actions .btn {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}

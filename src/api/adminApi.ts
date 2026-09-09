@@ -39,9 +39,9 @@ export type UpsertBrandPayload = {
 };
 
 const adminApi = {
-  async listProducts(page = 0, limit = 50) {
+  async listProducts(page = 0, size = 50) {
     const data = unwrap(
-      await axiosClient.get(API_ENDPOINTS.ADMIN_PRODUCTS, { params: { page, limit } })
+      await axiosClient.get(API_ENDPOINTS.ADMIN_PRODUCTS, { params: { page, size } })
     ) as PagedResponse<Product>;
     return { ...data, content: data.content.map(withProductImage) };
   },

@@ -29,7 +29,7 @@ const Footer = () => {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <MapPin size={14} />
-                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>Hà Nội, Việt Nam</span>
+                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>Đà Nẵng, Việt Nam</span>
               </div>
             </div>
           </div>
@@ -59,14 +59,22 @@ const Footer = () => {
             <h4 className="footer-col-title">Hỗ trợ</h4>
             <div className="footer-links">
               {[
+                { label: 'Sản phẩm', to: ROUTES.PRODUCTS },
+                { label: 'Hàng pass', to: ROUTES.PASS },
+                { label: 'Giảm giá', to: ROUTES.DEALS },
+                { label: 'Đơn hàng', to: ROUTES.ORDERS },
+                { label: 'Tài khoản', to: ROUTES.PROFILE },
                 { label: 'Cửa hàng', to: ROUTES.STORES },
-                { label: 'Đào tạo', to: ROUTES.TRAINING },
-                { label: 'Tin tức', to: ROUTES.NEWS },
-                { label: 'Tuyển dụng', to: ROUTES.CAREERS },
-                { label: 'Liên hệ', to: ROUTES.CONTACT },
-              ].map((item) => (
-                <Link key={item.label} to={item.to} className="footer-link">{item.label}</Link>
-              ))}
+                { label: 'Liên hệ', comingSoon: true },
+              ].map((item) =>
+                item.comingSoon ? (
+                  <span key={item.label} className="footer-link footer-link-soon" title="Sắp ra mắt">
+                    {item.label}
+                  </span>
+                ) : (
+                  <Link key={item.label} to={item.to!} className="footer-link">{item.label}</Link>
+                )
+              )}
             </div>
             {/* Social */}
             <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
@@ -94,9 +102,9 @@ const Footer = () => {
         <div className="footer-bottom">
           <p className="footer-copy">© 2024 {APP_NAME}. All rights reserved.</p>
           <div className="footer-bottom-links">
-            <a href="#" className="footer-bottom-link">Chính sách bảo mật</a>
-            <a href="#" className="footer-bottom-link">Điều khoản sử dụng</a>
-            <a href="#" className="footer-bottom-link">Chính sách đổi trả</a>
+            <span className="footer-bottom-link" title="Sắp ra mắt">Chính sách bảo mật</span>
+            <span className="footer-bottom-link" title="Sắp ra mắt">Điều khoản sử dụng</span>
+            <span className="footer-bottom-link" title="Sắp ra mắt">Chính sách đổi trả</span>
           </div>
         </div>
       </div>
